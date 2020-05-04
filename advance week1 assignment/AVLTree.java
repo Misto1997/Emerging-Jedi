@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-
 class Node {
     int data, height;
     Node left, right;
@@ -34,31 +31,27 @@ public class AVLTree {
         System.out.println();
 
         //Deletion
-        tree.root = tree.deleteNode(tree.root, 50);
+        tree.root = tree.deleteNode(tree.root, 30);
         tree.preOrder(tree.root);
         System.out.println();
-
-        //Numbers Greater than given number
-        List<Integer> list = new ArrayList<>();
-        tree.inOrder(tree.root, list);
-        int index = list.indexOf(25);
-        System.out.println(list.size() - (index + 1));
-
     }
 
-    //Inorder traversal
-    private void inOrder(Node node, List<Integer> list) {
-        if (node != null) {
-            inOrder(node.left, list);
-            list.add(node.data);
-            inOrder(node.right, list);
-        }
-    }
 
     //to delete a node from AVL tree
     private Node deleteNode(Node root, int i) {
         if (root == null)
             return root;
+        root = findNodeToBeDeleted(root, i);
+        if (root == null)
+            return root;
+        root.height = 1 + Math.max(height(root.left), height(root.right));
+        int balanceFactor = findDifferenceLeftRightNode(root);
+        return doRequiredRotationAfterDeletion(balanceFactor, root);
+
+    }
+
+    //to find Node to be deleted
+    private Node findNodeToBeDeleted(Node root, int i) {
         if (i < root.data)
             root.left = deleteNode(root.left, i);
         else if (i > root.data)
@@ -73,11 +66,11 @@ public class AVLTree {
                 root.right = deleteNode(root.right, root.data);
             }
         }
-        if (root == null)
-            return root;
-        root.height = 1 + Math.max(height(root.left), height(root.right));
-        int balanceFactor = findDifferenceLeftRightNode(root);
+        return root;
+    }
 
+    //rotation after deletion
+    private Node doRequiredRotationAfterDeletion(int balanceFactor, Node root) {
         //left left situation
         if (balanceFactor > 1 && findDifferenceLeftRightNode(root.left) >= 0)
             return rightRotation(root);
@@ -99,7 +92,6 @@ public class AVLTree {
         }
 
         return root;
-
     }
 
     //to calculate Successor i.e leftMost of right node
@@ -121,7 +113,7 @@ public class AVLTree {
 
 
     //insertions of new node
-    private Node insertNode(Node root, int i) {
+    public Node insertNode(Node root, int i) {
         if (root == null)
             return new Node(i);
         else if (i < root.data)
@@ -131,23 +123,24 @@ public class AVLTree {
 
         root.height = 1 + Math.max(height(root.left), height(root.right));
         int balanceFactor = findDifferenceLeftRightNode(root);
+        return doRequiredRotationAfterInsertion(balanceFactor, root, i);
 
+    }
+
+    private Node doRequiredRotationAfterInsertion(int balanceFactor, Node root, int i) {
         //left left situation
         if (balanceFactor > 1 && i < root.left.data) {
             return rightRotation(root);
         }
-
         //left right situation
         if (balanceFactor > 1 && i > root.left.data) {
             root.left = leftRotation(root.left);
             return rightRotation(root);
         }
-
         //right right rotation
         if (balanceFactor < -1 && i > root.right.data) {
             return leftRotation(root);
         }
-
         //right left rotation
         if (balanceFactor < -1 && i < root.right.data) {
             root.right = rightRotation(root.right);
